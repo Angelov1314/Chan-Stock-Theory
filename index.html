@@ -1,210 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chan Theory Mobile App</title>
+    <title>缠论技术分析系统</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 1rem;
+            font-family: 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
         }
         h1 {
-            text-align: center;
             color: #2c3e50;
-            margin-bottom: 2rem;
-        }
-        .form-group {
             margin-bottom: 1rem;
         }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #555;
+        p {
+            color: #666;
+            margin-bottom: 2rem;
         }
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-        button {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
+        .btn {
+            display: inline-block;
             padding: 1rem 2rem;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 1rem;
+            background: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
         }
-        button:hover {
+        .btn:hover {
+            background: #34495e;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .status {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
+        .btn-web {
+            background: #28a745;
         }
-        .chart-container {
-            text-align: center;
-            margin: 1rem 0;
-        }
-        .chart-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .btn-web:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📈 Chan Theory Analysis</h1>
-        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
-            Mobile App - Connected to Flask Backend
-        </p>
-
-        <div class="status" id="status">
-            Status: Ready to analyze
+        <h1>📈 缠论技术分析系统</h1>
+        <p>基于缠论理论的股票技术分析工具</p>
+        
+        <div>
+            <a href="mobile-app/" class="btn">📱 移动端应用</a>
+            <a href="https://chan-stock-theory.onrender.com" class="btn btn-web" target="_blank">💻 网页版应用</a>
         </div>
-
-        <form id="analysisForm">
-            <div class="form-group">
-                <label for="symbol">Stock Symbol:</label>
-                <input type="text" id="symbol" value="AAPL" placeholder="e.g., AAPL">
-            </div>
-
-            <div class="form-group">
-                <label for="timeframe">Timeframe:</label>
-                <select id="timeframe">
-                    <option value="1d">Daily</option>
-                    <option value="1wk">Weekly</option>
-                    <option value="1mo">Monthly</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="start_date">Start Date:</label>
-                <input type="date" id="start_date">
-            </div>
-
-            <div class="form-group">
-                <label for="end_date">End Date:</label>
-                <input type="date" id="end_date">
-            </div>
-
-            <button type="submit">Run Analysis</button>
-        </form>
-
-        <div id="results" style="display: none;">
-            <h2>Analysis Results</h2>
-            <div class="chart-container" id="chartContainer"></div>
-            <div id="reportContainer"></div>
+        
+        <div style="margin-top: 2rem; font-size: 0.9rem; color: #888;">
+            <p>移动端：PWA应用，支持离线使用</p>
+            <p>网页版：完整功能，包含新手手册</p>
         </div>
     </div>
-
-    <script>
-        const API_BASE = 'https://chan-stock-theory.onrender.com';
-        
-        // Set default dates
-        const today = new Date();
-        const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-        document.getElementById('start_date').value = oneYearAgo.toISOString().split('T')[0];
-        document.getElementById('end_date').value = today.toISOString().split('T')[0];
-
-        // API functions
-        async function checkHealth() {
-            try {
-                const response = await fetch(`${API_BASE}/`);
-                const data = await response.json();
-                document.getElementById('status').innerHTML = 'Status: API Connected ✅';
-                return true;
-            } catch (error) {
-                document.getElementById('status').innerHTML = 'Status: API Error ❌';
-                return false;
-            }
-        }
-
-        async function runAnalysis(formData) {
-            try {
-                document.getElementById('status').innerHTML = 'Status: Analyzing...';
-                
-                const response = await fetch(`${API_BASE}/analyze`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    document.getElementById('status').innerHTML = 'Status: Analysis Complete ✅';
-                    displayResults(result);
-                } else {
-                    document.getElementById('status').innerHTML = 'Status: Analysis Failed ❌';
-                }
-            } catch (error) {
-                document.getElementById('status').innerHTML = 'Status: Analysis Failed ❌';
-                console.error('Analysis error:', error);
-            }
-        }
-
-        function displayResults(result) {
-            const resultsDiv = document.getElementById('results');
-            const chartContainer = document.getElementById('chartContainer');
-            const reportContainer = document.getElementById('reportContainer');
-            
-            // Display chart
-            if (result.chart) {
-                chartContainer.innerHTML = `<img src="${result.chart}" alt="Chan Theory Chart">`;
-            }
-            
-            // Display report
-            if (result.report) {
-                reportContainer.innerHTML = `<pre>${JSON.stringify(result.report, null, 2)}</pre>`;
-            }
-            
-            resultsDiv.style.display = 'block';
-        }
-
-        // Form submission
-        document.getElementById('analysisForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                symbol: document.getElementById('symbol').value,
-                start_date: document.getElementById('start_date').value,
-                end_date: document.getElementById('end_date').value,
-                timeframe: document.getElementById('timeframe').value
-            };
-            
-            await runAnalysis(formData);
-        });
-
-        // Check API health on load
-        checkHealth();
-    </script>
 </body>
 </html>
