@@ -71,6 +71,7 @@
             <button onclick="testManifest()">测试Manifest</button>
             <button onclick="testServiceWorker()">测试Service Worker</button>
             <button onclick="clearCache()">清除缓存</button>
+            <button onclick="showInstallGuide()">iOS安装指导</button>
             <button onclick="location.reload()">刷新页面</button>
         </div>
         
@@ -138,7 +139,16 @@
         // 检查安装提示
         function checkInstallPrompt() {
             const status = document.getElementById('install-status');
-            if ('BeforeInstallPromptEvent' in window) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isStandalone) {
+                status.textContent = '✅ 应用已安装 (独立模式)';
+                status.className = 'status success';
+            } else if (isIOS) {
+                status.textContent = '📱 iOS: 请手动添加到主屏幕';
+                status.className = 'status warning';
+            } else if ('BeforeInstallPromptEvent' in window) {
                 status.textContent = '✅ 安装提示: 支持';
                 status.className = 'status success';
             } else {
@@ -179,6 +189,31 @@
             } else {
                 alert('浏览器不支持缓存API');
             }
+        }
+        
+        function showInstallGuide() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            let message = '';
+            
+            if (isIOS) {
+                message = `📱 iOS安装步骤：
+                
+1. 点击Safari底部的分享按钮 (□↑)
+2. 向下滚动找到"添加到主屏幕"
+3. 点击"添加到主屏幕"
+4. 点击"添加"按钮
+5. 应用图标将出现在主屏幕上
+
+注意：确保在Safari中访问，不是其他浏览器`;
+            } else {
+                message = `💻 桌面端安装：
+                
+Chrome/Edge: 地址栏右侧会出现安装图标
+Firefox: 地址栏右侧会出现安装图标
+Safari: 菜单栏 → 文件 → 添加到Dock`;
+            }
+            
+            alert(message);
         }
         
         // 收集调试信息

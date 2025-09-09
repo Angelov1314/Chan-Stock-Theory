@@ -169,6 +169,9 @@
                 <a class="nav-link" href="https://chan-stock-theory.onrender.com" target="_blank">
                     <i class="fas fa-desktop me-1"></i>网页版
                 </a>
+                <a class="nav-link" href="#" onclick="showInstallGuide(); return false;">
+                    <i class="fas fa-download me-1"></i>安装指导
+                </a>
             </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -927,6 +930,32 @@
         // 显示新手手册
         function showHandbook() {
             alert('新手手册功能正在开发中...');
+        }
+        
+        // 显示安装指导
+        function showInstallGuide() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            let message = '';
+            
+            if (isIOS) {
+                message = `📱 如何将应用添加到主屏幕：
+                
+1. 点击Safari底部的分享按钮 (□↑)
+2. 向下滚动找到"添加到主屏幕"
+3. 点击"添加到主屏幕"
+4. 点击"添加"按钮
+5. 应用图标将出现在主屏幕上
+
+注意：确保在Safari中访问，不是其他浏览器`;
+            } else {
+                message = `💻 桌面端安装：
+                
+Chrome/Edge: 地址栏右侧会出现安装图标
+Firefox: 地址栏右侧会出现安装图标
+Safari: 菜单栏 → 文件 → 添加到Dock`;
+            }
+            
+            alert(message);
         }
 
         // 注册Service Worker
