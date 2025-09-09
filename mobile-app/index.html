@@ -830,53 +830,89 @@
         // 显示验证结果
         function displayValidationResults(accuracy) {
             const validationResults = document.getElementById('validationResults');
-            let html = `
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>验证结果</h5>
-                    </div>
-                    <div class="card-body">
-            `;
             
-            // 检查是否是标准准确性格式
-            if (accuracy.overall_accuracy) {
-                html += `
-                    <div class="row">
-                        <div class="col-12 text-center mb-4">
-                            <div class="accuracy-score accuracy-excellent">${accuracy.overall_accuracy}%</div>
-                            <div class="h5">总体准确性评分</div>
+            // 兼容不同的数据格式
+            const metrics = accuracy.metrics || accuracy;
+            const chart = accuracy.chart || null;
+            
+            const overallScore = metrics.overall_accuracy;
+            let scoreClass = 'accuracy-poor';
+            if (overallScore >= 80) scoreClass = 'accuracy-excellent';
+            else if (overallScore >= 70) scoreClass = 'accuracy-good';
+            else if (overallScore >= 60) scoreClass = 'accuracy-fair';
+            
+            let html = `
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5><i class="fas fa-chart-line me-2"></i>准确性评估结果</h5>
+                        <div class="text-center mb-4">
+                            <div class="accuracy-score ${scoreClass}">${overallScore}%</div>
+                            <p class="text-muted">总体准确性评分</p>
                         </div>
                     </div>
-                    <div class="row">
-                `;
+                </div>
                 
-                const accuracyMetrics = [
-                    { key: 'fractal_accuracy', label: '分型准确性' },
-                    { key: 'stroke_accuracy', label: '笔准确性' },
-                    { key: 'price_prediction_accuracy', label: '价格预测准确性' },
-                    { key: 'trend_prediction_accuracy', label: '趋势预测准确性' }
-                ];
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-value">${metrics.fractal_accuracy}%</div>
+                            <div class="metric-label">分型准确性</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-value">${metrics.stroke_accuracy}%</div>
+                            <div class="metric-label">笔准确性</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-value">${metrics.price_accuracy}%</div>
+                            <div class="metric-label">价格预测</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card">
+                            <div class="metric-value">${metrics.trend_accuracy}%</div>
+                            <div class="metric-label">趋势预测</div>
+                        </div>
+                    </div>
+                </div>
                 
-                accuracyMetrics.forEach(metric => {
-                    if (accuracy[metric.key]) {
-                        html += `
-                            <div class="col-md-3">
-                                <div class="metric-card">
-                                    <div class="metric-value">${accuracy[metric.key]}%</div>
-                                    <div class="metric-label">${metric.label}</div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">验证信息</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>历史期间：</strong>${metrics.validation_info.historical_period}</p>
+                                <p><strong>验证期间：</strong>${metrics.validation_info.validation_period}</p>
+                                <p><strong>历史价格：</strong>$${metrics.validation_info.historical_price}</p>
+                                <p><strong>实际价格：</strong>$${metrics.validation_info.actual_price}</p>
+                                <p><strong>价格变化：</strong>$${metrics.validation_info.price_change}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${chart ? `
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">训练期与未来期对比图</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <img src="${chart}" alt="Validation Comparison" class="img-fluid" />
                                 </div>
                             </div>
-                        `;
-                    }
-                });
-                
-                html += '</div>';
-            } else {
-                // 显示原始数据格式
-                html += '<div class="alert alert-info"><pre>' + JSON.stringify(accuracy, null, 2) + '</pre></div>';
-            }
+                        </div>
+                    </div>
+                </div>` : ''}
+            `;
             
-            html += '</div></div>';
             validationResults.innerHTML = html;
         }
 
