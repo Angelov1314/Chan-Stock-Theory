@@ -132,64 +132,30 @@
         document.getElementById('start_date').value = oneYearAgo.toISOString().split('T')[0];
         document.getElementById('end_date').value = today.toISOString().split('T')[0];
 
-        // Fetch with timeout helper
-        function fetchWithTimeout(url, options = {}, timeoutMs = 60000) {
-            const controller = new AbortController();
-            const id = setTimeout(() => {
-                controller.abort();
-                console.log('Request timed out after', timeoutMs, 'ms');
-            }, timeoutMs);
-            return fetch(url, { ...options, signal: controller.signal })
-                .finally(() => clearTimeout(id));
-        }
-
         // API functions
         async function checkHealth() {
             try {
-                const response = await fetchWithTimeout(`${API_BASE}/api/health`, {}, 10000);
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('status').innerHTML = 'Status: API Connected ✅';
-                    console.log('Health check response:', data);
-                    return true;
-                } else {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                document.getElementById('status').innerHTML = 'Status: API Connected ✅';
+                return true;
             } catch (error) {
                 document.getElementById('status').innerHTML = 'Status: API Error ❌';
-                showError(`Health check failed: ${error.message}`);
-                console.error('Health check error:', error);
                 return false;
             }
         }
 
         async function runAnalysis(formData) {
             try {
-                document.getElementById('status').innerHTML = 'Status: Analyzing... (This may take up to 60 seconds)';
+                document.getElementById('status').innerHTML = 'Status: Analyzing...';
                 
-                // Show progress indicator
-                const statusEl = document.getElementById('status');
-                let dots = 0;
-                const progressInterval = setInterval(() => {
-                    dots = (dots + 1) % 4;
-                    statusEl.innerHTML = `Status: Analyzing${'.'.repeat(dots)} (This may take up to 60 seconds)`;
-                }, 1000);
-                
-                const response = await fetchWithTimeout(`${API_BASE}/analyze`, {
+                const response = await fetch(`${API_BASE}/analyze`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(formData),
-                }, 60000);
-                
-                // Clear progress indicator
-                clearInterval(progressInterval);
-                
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${text}`);
-                }
+                });
                 
                 const result = await response.json();
                 
@@ -198,27 +164,11 @@
                     displayResults(result);
                 } else {
                     document.getElementById('status').innerHTML = 'Status: Analysis Failed ❌';
-                    showError(JSON.stringify(result, null, 2));
                 }
             } catch (error) {
-                // Clear progress indicator
-                clearInterval(progressInterval);
-                
-                if (error.name === 'AbortError') {
-                    document.getElementById('status').innerHTML = 'Status: Analysis Timeout ❌';
-                    showError('Analysis timed out after 60 seconds. The server may be busy or the analysis is taking longer than expected.');
-                } else {
-                    document.getElementById('status').innerHTML = 'Status: Analysis Failed ❌';
-                    showError(`Analysis failed: ${error.message}`);
-                }
+                document.getElementById('status').innerHTML = 'Status: Analysis Failed ❌';
                 console.error('Analysis error:', error);
             }
-        }
-
-        function showError(message) {
-            const reportContainer = document.getElementById('reportContainer');
-            reportContainer.innerHTML = `<div style="color:#c00;white-space:pre-wrap;background:#ffe6e6;padding:1rem;border-radius:8px;margin:1rem 0;">Error: ${message}</div>`;
-            document.getElementById('results').style.display = 'block';
         }
 
         function displayResults(result) {

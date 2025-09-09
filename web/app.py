@@ -720,6 +720,15 @@ def validate():
     except Exception as e:
         return jsonify({'error': f'验证失败: {str(e)}'}), 500
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for API status"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Chan Theory API is running',
+        'timestamp': datetime.now().isoformat()
+    })
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
