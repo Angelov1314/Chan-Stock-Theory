@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, send_file
+from flask_cors import CORS
 import yfinance as yf
 import matplotlib
 matplotlib.use('Agg')  # 使用非交互式后端
@@ -32,6 +33,9 @@ from scripts.run_fixed import (
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chan_analysis_secret_key'
+
+# Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
 
 class ChanWebAnalyzer:
     def __init__(self):
