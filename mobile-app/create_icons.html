@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>生成应用图标</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192" style="border: 1px solid #ccc;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border: 1px solid #ccc;"></canvas>
+    <br>
+    <button onclick="generateIcons()">生成图标</button>
+    <button onclick="downloadIcon(192)">下载192x192</button>
+    <button onclick="downloadIcon(512)">下载512x512</button>
+
+    <script>
+        function generateIcons() {
+            // 生成192x192图标
+            const canvas192 = document.getElementById('canvas192');
+            const ctx192 = canvas192.getContext('2d');
+            
+            // 背景
+            ctx192.fillStyle = '#2c3e50';
+            ctx192.fillRect(0, 0, 192, 192);
+            
+            // 绘制图表图标
+            ctx192.fillStyle = '#ffffff';
+            ctx192.font = 'bold 120px Arial';
+            ctx192.textAlign = 'center';
+            ctx192.fillText('📈', 96, 120);
+            
+            // 生成512x512图标
+            const canvas512 = document.getElementById('canvas512');
+            const ctx512 = canvas512.getContext('2d');
+            
+            // 背景
+            ctx512.fillStyle = '#2c3e50';
+            ctx512.fillRect(0, 0, 512, 512);
+            
+            // 绘制图表图标
+            ctx512.fillStyle = '#ffffff';
+            ctx512.font = 'bold 320px Arial';
+            ctx512.textAlign = 'center';
+            ctx512.fillText('📈', 256, 320);
+        }
+
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // 页面加载时自动生成图标
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>
