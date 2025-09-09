@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA测试页面</title>
+    
+    <!-- PWA支持 -->
+    <link rel="manifest" href="./manifest-simple.json">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PWA测试">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .warning { background: rgba(255, 152, 0, 0.3); }
+        button {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 PWA诊断工具</h1>
+        <p>这个页面用于诊断PWA配置问题</p>
+        
+        <div id="status-container">
+            <div class="status" id="https-status">检查HTTPS...</div>
+            <div class="status" id="manifest-status">检查Manifest...</div>
+            <div class="status" id="sw-status">检查Service Worker...</div>
+            <div class="status" id="install-status">检查安装提示...</div>
+        </div>
+        
+        <div>
+            <button onclick="testManifest()">测试Manifest</button>
+            <button onclick="testServiceWorker()">测试Service Worker</button>
+            <button onclick="clearCache()">清除缓存</button>
+            <button onclick="location.reload()">刷新页面</button>
+        </div>
+        
+        <div id="debug-info" style="margin-top: 20px; font-size: 12px; opacity: 0.8;">
+            <h3>调试信息：</h3>
+            <div id="debug-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 检查HTTPS
+        function checkHTTPS() {
+            const isHTTPS = location.protocol === 'https:';
+            const status = document.getElementById('https-status');
+            if (isHTTPS) {
+                status.textContent = '✅ HTTPS: 已启用';
+                status.className = 'status success';
+            } else {
+                status.textContent = '❌ HTTPS: 未启用 (PWA需要HTTPS)';
+                status.className = 'status error';
+            }
+        }
+        
+        // 检查Manifest
+        function checkManifest() {
+            const status = document.getElementById('manifest-status');
+            fetch('./manifest-simple.json')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Manifest not found');
+                })
+                .then(manifest => {
+                    status.textContent = '✅ Manifest: 加载成功';
+                    status.className = 'status success';
+                    console.log('Manifest:', manifest);
+                })
+                .catch(error => {
+                    status.textContent = '❌ Manifest: 加载失败 - ' + error.message;
+                    status.className = 'status error';
+                });
+        }
+        
+        // 检查Service Worker
+        function checkServiceWorker() {
+            const status = document.getElementById('sw-status');
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration()
+                    .then(registration => {
+                        if (registration) {
+                            status.textContent = '✅ Service Worker: 已注册';
+                            status.className = 'status success';
+                        } else {
+                            status.textContent = '⚠️ Service Worker: 未注册';
+                            status.className = 'status warning';
+                        }
+                    });
+            } else {
+                status.textContent = '❌ Service Worker: 不支持';
+                status.className = 'status error';
+            }
+        }
+        
+        // 检查安装提示
+        function checkInstallPrompt() {
+            const status = document.getElementById('install-status');
+            if ('BeforeInstallPromptEvent' in window) {
+                status.textContent = '✅ 安装提示: 支持';
+                status.className = 'status success';
+            } else {
+                status.textContent = '⚠️ 安装提示: 不支持或已安装';
+                status.className = 'status warning';
+            }
+        }
+        
+        // 测试函数
+        function testManifest() {
+            checkManifest();
+        }
+        
+        function testServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw-simple.js', { scope: './' })
+                    .then(registration => {
+                        alert('Service Worker注册成功！');
+                        checkServiceWorker();
+                    })
+                    .catch(error => {
+                        alert('Service Worker注册失败: ' + error.message);
+                    });
+            } else {
+                alert('浏览器不支持Service Worker');
+            }
+        }
+        
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                    alert('缓存已清除！');
+                    location.reload();
+                });
+            } else {
+                alert('浏览器不支持缓存API');
+            }
+        }
+        
+        // 收集调试信息
+        function collectDebugInfo() {
+            const debug = document.getElementById('debug-content');
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Protocol': location.protocol,
+                'Host': location.host,
+                'Path': location.pathname,
+                'Service Worker Support': 'serviceWorker' in navigator,
+                'Cache API Support': 'caches' in window,
+                'BeforeInstallPrompt': 'BeforeInstallPromptEvent' in window,
+                'Standalone Mode': window.matchMedia('(display-mode: standalone)').matches,
+                'Fullscreen Mode': window.matchMedia('(display-mode: fullscreen)').matches
+            };
+            
+            let html = '';
+            for (const [key, value] of Object.entries(info)) {
+                html += `<div><strong>${key}:</strong> ${value}</div>`;
+            }
+            debug.innerHTML = html;
+        }
+        
+        // 页面加载时运行检查
+        window.addEventListener('load', function() {
+            checkHTTPS();
+            checkManifest();
+            checkServiceWorker();
+            checkInstallPrompt();
+            collectDebugInfo();
+        });
+        
+        // 监听安装提示
+        window.addEventListener('beforeinstallprompt', function(e) {
+            console.log('安装提示事件触发');
+            e.preventDefault();
+            document.getElementById('install-status').textContent = '✅ 安装提示: 可用';
+            document.getElementById('install-status').className = 'status success';
+        });
+    </script>
+</body>
+</html>
