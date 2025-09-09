@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: chan-theory-web
+    env: python
+    plan: free
+    buildCommand: pip install -r web/requirements.txt
+    startCommand: gunicorn web.app:app
+    rootDir: .
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
