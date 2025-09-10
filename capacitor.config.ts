@@ -1,13 +1,9 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.chantheory.app',
-  appName: 'ChanTheoryApp',
-  webDir: 'dist',
-  bundledWebRuntime: false,
-  server: {
-    androidScheme: 'https'
-  }
+  appName: 'Chan Theory Analysis',
+  webDir: 'dist'
 };
 
 export default config;

@@ -581,6 +581,7 @@ class ChanWebAnalyzer:
         """生成训练期与未来期对比图，并标注预测方向"""
         try:
             fig, ax = plt.subplots(figsize=(16, 8))
+            
             # 时间轴
             dates = None
             if 'Date' in full_df.columns and pd.api.types.is_datetime64_any_dtype(full_df['Date']):
@@ -628,7 +629,8 @@ class ChanWebAnalyzer:
             img_str = base64.b64encode(buf.getvalue()).decode()
             plt.close()
             return f"data:image/png;base64,{img_str}"
-        except Exception:
+        except Exception as e:
+            print(f"图表生成失败: {str(e)}")
             return None
 
 # 创建分析器实例

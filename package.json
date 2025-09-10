@@ -16,6 +16,9 @@
     "cap:sync": "npx cap sync"
   },
   "dependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
@@ -31,5 +34,18 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
-  }
+  },
+  "description": "A React + Capacitor mobile app that connects to your Flask backend for Chan Theory stock analysis.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Angelov1314/Chan-Stock-Theory.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Angelov1314/Chan-Stock-Theory/issues"
+  },
+  "homepage": "https://github.com/Angelov1314/Chan-Stock-Theory#readme"
 }
