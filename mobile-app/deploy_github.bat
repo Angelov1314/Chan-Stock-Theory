@@ -1,18 +1,19 @@
 @echo off
-echo 部署到GitHub Pages
-echo ==================
+echo ========================================
+echo 缠论技术分析系统 - PWA部署脚本
+echo ========================================
 
 echo.
 echo 1. 检查Git状态...
 git status
 
 echo.
-echo 2. 添加所有文件...
+echo 2. 添加所有更改...
 git add .
 
 echo.
 echo 3. 提交更改...
-git commit -m "Deploy mobile app with PWA support"
+git commit -m "更新PWA版本 - 添加用户系统、关注列表、研究历史功能"
 
 echo.
 echo 4. 推送到GitHub...
@@ -21,11 +22,15 @@ git push origin main
 echo.
 echo 5. 部署完成！
 echo.
-echo 访问地址: https://angelov1314.github.io/Chan-Stock-Theory/mobile-app/
+echo PWA应用已部署到: https://angelov1314.github.io/Chan-Stock-Theory/
 echo.
-echo 在手机上访问上述地址，然后：
-echo 1. 点击浏览器菜单
-echo 2. 选择"添加到主屏幕"
-echo 3. 应用将安装到手机桌面
+echo 新功能包括:
+echo - 用户注册登录系统
+echo - 股票关注列表管理
+echo - 研究历史保存和查看
+echo - 中文股票代码自动识别
+echo - 响应式移动端界面
+echo.
+echo 请在手机浏览器中访问上述链接，然后点击"添加到主屏幕"安装PWA应用。
 echo.
 pause

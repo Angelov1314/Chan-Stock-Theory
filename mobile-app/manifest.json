@@ -1,24 +1,35 @@
 {
   "name": "缠论技术分析系统",
   "short_name": "缠论分析",
-  "description": "基于缠论理论的专业股票分析工具",
+  "description": "基于缠论理论的专业股票分析工具 - 支持用户系统、关注列表、研究历史",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f8f9fa",
-  "theme_color": "#2c3e50",
-  "orientation": "portrait",
+  "background_color": "#f5f7fa",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "assets/icon-192-dw90j4oy.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "assets/icon-512-Bky_4QGc.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["finance", "utilities"],
-  "lang": "zh-CN"
+  "categories": ["finance", "utilities", "productivity"],
+  "lang": "zh-CN",
+  "prefer_related_applications": false,
+  "features": [
+    "用户注册登录",
+    "股票关注列表", 
+    "研究历史保存",
+    "中文股票自动识别",
+    "实时技术分析"
+  ]
 }
