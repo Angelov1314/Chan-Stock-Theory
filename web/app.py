@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_cors import CORS
 import yfinance as yf
 import matplotlib
@@ -30,6 +30,10 @@ from scripts.run_fixed import (
     load_ohlc, find_fractals, build_strokes, build_segments, 
     detect_zhongshu, detect_divergence, resolve_inclusion
 )
+
+# 导入用户管理和股票工具
+from user_manager import user_manager
+from stock_utils import stock_utils
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chan_analysis_secret_key'
@@ -636,10 +640,209 @@ class ChanWebAnalyzer:
 # 创建分析器实例
 analyzer = ChanWebAnalyzer()
 
+# 用户认证装饰器
+def require_auth(f):
+    """需要认证的装饰器"""
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': '需要登录'}), 401
+        return f(*args, **kwargs)
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
 @app.route('/')
 def index():
     """主页面"""
     return render_template('index.html')
+
+# 用户认证相关路由
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """用户注册"""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        
+        if not all([username, email, password]):
+            return jsonify({'error': '请填写完整信息'}), 400
+        
+        success, message = user_manager.register_user(username, email, password)
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'error': message}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'注册失败: {str(e)}'}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """用户登录"""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return jsonify({'error': '请填写用户名和密码'}), 400
+        
+        user_id, message = user_manager.authenticate_user(username, password)
+        if user_id:
+            session['user_id'] = user_id
+            user_info = user_manager.get_user_info(user_id)
+            return jsonify({
+                'success': True, 
+                'message': message,
+                'user': user_info
+            })
+        else:
+            return jsonify({'error': message}), 401
+            
+    except Exception as e:
+        return jsonify({'error': f'登录失败: {str(e)}'}), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    """用户登出"""
+    session.pop('user_id', None)
+    return jsonify({'success': True, 'message': '已登出'})
+
+@app.route('/api/auth/me', methods=['GET'])
+@require_auth
+def get_current_user():
+    """获取当前用户信息"""
+    user_id = session.get('user_id')
+    user_info = user_manager.get_user_info(user_id)
+    if user_info:
+        return jsonify({'success': True, 'user': user_info})
+    else:
+        return jsonify({'error': '用户不存在'}), 404
+
+# 股票工具相关路由
+@app.route('/api/stock/format', methods=['POST'])
+def format_stock_symbol():
+    """格式化股票代码"""
+    try:
+        data = request.get_json()
+        symbol = data.get('symbol', '').strip()
+        
+        if not symbol:
+            return jsonify({'error': '股票代码不能为空'}), 400
+        
+        # 验证和格式化股票代码
+        is_valid, message = stock_utils.validate_symbol(symbol)
+        if not is_valid:
+            return jsonify({'error': message}), 400
+        
+        stock_info = stock_utils.get_stock_info(symbol)
+        return jsonify({'success': True, 'stock_info': stock_info})
+        
+    except Exception as e:
+        return jsonify({'error': f'格式化失败: {str(e)}'}), 500
+
+@app.route('/api/stock/search', methods=['POST'])
+def search_stocks():
+    """搜索股票"""
+    try:
+        data = request.get_json()
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return jsonify({'error': '搜索关键词不能为空'}), 400
+        
+        results = stock_utils.search_stocks(query)
+        return jsonify({'success': True, 'results': results})
+        
+    except Exception as e:
+        return jsonify({'error': f'搜索失败: {str(e)}'}), 500
+
+# 关注列表相关路由
+@app.route('/api/watchlist', methods=['GET'])
+@require_auth
+def get_watchlist():
+    """获取关注列表"""
+    try:
+        user_id = session.get('user_id')
+        watchlist = user_manager.get_watchlist(user_id)
+        return jsonify({'success': True, 'watchlist': watchlist})
+    except Exception as e:
+        return jsonify({'error': f'获取关注列表失败: {str(e)}'}), 500
+
+@app.route('/api/watchlist', methods=['POST'])
+@require_auth
+def add_to_watchlist():
+    """添加到关注列表"""
+    try:
+        data = request.get_json()
+        symbol = data.get('symbol', '').strip()
+        display_name = data.get('display_name', '').strip()
+        
+        if not symbol:
+            return jsonify({'error': '股票代码不能为空'}), 400
+        
+        # 格式化股票代码
+        formatted_symbol = stock_utils.format_chinese_stock(symbol)
+        if not display_name:
+            display_name = formatted_symbol
+        
+        user_id = session.get('user_id')
+        success, message = user_manager.add_to_watchlist(user_id, formatted_symbol, display_name)
+        
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'error': message}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'添加失败: {str(e)}'}), 500
+
+@app.route('/api/watchlist/<symbol>', methods=['DELETE'])
+@require_auth
+def remove_from_watchlist(symbol):
+    """从关注列表移除"""
+    try:
+        user_id = session.get('user_id')
+        success, message = user_manager.remove_from_watchlist(user_id, symbol)
+        
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'error': message}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'移除失败: {str(e)}'}), 500
+
+# 研究历史相关路由
+@app.route('/api/history', methods=['GET'])
+@require_auth
+def get_research_history():
+    """获取研究历史"""
+    try:
+        user_id = session.get('user_id')
+        limit = request.args.get('limit', 50, type=int)
+        history = user_manager.get_research_history(user_id, limit)
+        return jsonify({'success': True, 'history': history})
+    except Exception as e:
+        return jsonify({'error': f'获取历史记录失败: {str(e)}'}), 500
+
+@app.route('/api/history/<history_id>', methods=['DELETE'])
+@require_auth
+def delete_research_history(history_id):
+    """删除研究历史"""
+    try:
+        user_id = session.get('user_id')
+        success, message = user_manager.delete_research_history(user_id, history_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'error': message}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'删除失败: {str(e)}'}), 500
 
 @app.route('/handbook')
 def handbook():
@@ -651,18 +854,21 @@ def analyze():
     """执行缠论分析"""
     try:
         data = request.get_json()
-        symbol = data.get('symbol', '').upper()
+        symbol = data.get('symbol', '').strip()
         start_date = data.get('start_date', '')
         end_date = data.get('end_date', '')
         
         if not symbol or not start_date or not end_date:
             return jsonify({'error': '请填写完整的股票代码和日期范围'}), 400
         
+        # 格式化股票代码（自动添加中文股票后缀）
+        formatted_symbol = stock_utils.format_chinese_stock(symbol)
+        
         # 获取时间框架参数
         timeframe = data.get('timeframe', '1d')
         
         # 下载数据
-        df, error = analyzer.download_stock_data(symbol, start_date, end_date, timeframe)
+        df, error = analyzer.download_stock_data(formatted_symbol, start_date, end_date, timeframe)
         if error:
             return jsonify({'error': error}), 400
         
@@ -685,12 +891,25 @@ def analyze():
         if error:
             return jsonify({'error': error}), 400
         
+        # 如果用户已登录，保存研究历史
+        user_id = session.get('user_id')
+        if user_id:
+            try:
+                user_manager.save_research_history(
+                    user_id, formatted_symbol, start_date, end_date, 
+                    timeframe, report, chart_data
+                )
+            except Exception as e:
+                print(f"保存研究历史失败: {str(e)}")
+        
         return jsonify({
             'success': True,
             'chart': chart_data,
             'report': report,
-            'symbol': symbol,
-            'period': f"{start_date} 至 {end_date}"
+            'symbol': formatted_symbol,
+            'original_symbol': symbol,
+            'period': f"{start_date} 至 {end_date}",
+            'stock_info': stock_utils.get_stock_info(symbol)
         })
         
     except Exception as e:

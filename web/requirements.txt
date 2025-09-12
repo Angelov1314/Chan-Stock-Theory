@@ -12,3 +12,6 @@ matplotlib>=3.9.0
 numpy>=2.1.0
 pandas>=2.2.2
 Flask-Cors>=4.0.0
+
+# 新增依赖
+# sqlite3 是Python内置模块，无需安装
